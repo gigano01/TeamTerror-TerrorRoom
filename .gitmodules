@@ -1,0 +1,9 @@
+[submodule "creativecoding_terrorroom_pi1"]
+	path = creativecoding_terrorroom_pi1
+	url = git@github.com:gigano01/creativecoding_terrorroom_pi1.git
+[submodule "creativecoding_terrorroom_pi2"]
+	path = creativecoding_terrorroom_pi2
+	url = git@github.com:gigano01/creativecoding_terrorroom_pi2.git
+[submodule "creativecoding_terrorroom"]
+	path = creativecoding_terrorroom
+	url = git@github.com:sammiadergent/creativecoding_terrorroom.git
