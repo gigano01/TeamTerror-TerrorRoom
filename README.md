@@ -655,6 +655,13 @@ if (outroCounter === 3) {
       }, 0);
     }
 ```
+## visitekaartjes 
+De visitekaartjes hebben een voor- en achterkant. Omdat er aan beide zijden spot-uv is gebruikt, moet je de kaartjes dubbel vouwen. Hierdoor worden ze extra stevig.
+
+**Druk**
+<img width="1282" alt="Scherm­afbeelding 2024-05-28 om 14 17 08" src="https://github.com/gigano01/TeamTerror-TerrorRoom/assets/136450680/8f651374-122c-4e89-9ec8-6606b0dd921e">
+**Cut**
+<img width="1282" alt="Scherm­afbeelding 2024-05-28 om 14 17 31" src="https://github.com/gigano01/TeamTerror-TerrorRoom/assets/136450680/1e889f99-e042-4bc6-a372-015392af8cbb">
 
 
 
