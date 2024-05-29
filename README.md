@@ -291,13 +291,6 @@ const gameModeAudios = {
     { file: loadAudioFile(audioContext, "random_1.mp3"), pan: -1 },
     { file: loadAudioFile(audioContext, "random_2.mp3"), pan: 1 },
     { file: loadAudioFile(audioContext, "random_3.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_4.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_5.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_6.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_7.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_8.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_9.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_10.mp3"), pan: -1 },
   ],
   HSP: [
     { file: loadAudioFile(audioContext, "hsp_1.m4a"), pan: -1 },
@@ -307,13 +300,6 @@ const gameModeAudios = {
     { file: loadAudioFile(audioContext, "random_1.mp3"), pan: -1 },
     { file: loadAudioFile(audioContext, "random_2.mp3"), pan: 1 },
     { file: loadAudioFile(audioContext, "random_3.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_4.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_5.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_6.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_7.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_8.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_9.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_10.mp3"), pan: 1 },
   ],
   ASS: [
     { file: loadAudioFile(audioContext, "ass_1.m4a"), pan: -1 },
@@ -322,13 +308,6 @@ const gameModeAudios = {
     { file: loadAudioFile(audioContext, "random_1.mp3"), pan: 1 },
     { file: loadAudioFile(audioContext, "random_2.mp3"), pan: -1 },
     { file: loadAudioFile(audioContext, "random_3.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_4.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_5.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_6.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_7.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_8.mp3"), pan: -1 },
-    { file: loadAudioFile(audioContext, "random_9.mp3"), pan: 1 },
-    { file: loadAudioFile(audioContext, "random_10.mp3"), pan: -1 },
   ],
 };
 
@@ -355,7 +334,7 @@ const gameModeAudios = {
     }
   }
 ```
-Als er een fout wordt gemaakt in het spel, zal de websocket een "fail" signaal versturen dat de juiste game-mode activeert. Deze zorgt ervoor dat de juiste "jumpscare" wordt getoond, waarna de hoofdvideo verder afspeelt.
+Als er een fout wordt gemaakt in het spel, zal de websocket een "fail" signaal versturen dat de juiste game-mode activeert. Deze zorgt ervoor dat de juiste "jumpscare" wordt getoond, waarna de hoofdvideo verder afspeelt. De video's worden op de volgende manier in de html geplaatst.
 
 **HTML**
 ```
@@ -374,95 +353,6 @@ Als er een fout wordt gemaakt in het spel, zal de websocket een "fail" signaal v
             <source src="/jumpscare_ass4.mp4" type="video/mp4">
             </video>
         </div>
-        <div class="video_hsp_jumpscare_1 invisable" id="failvideo3_1">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_hsp1.mp4" type="video/mp4">
-            </video>
-        </div>
-        <div class="video_hsp_jumpscare_2 invisable" id="failvideo3_2">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_hsp2.mp4" type="video/mp4">
-            </video>
-        </div>
-        <div class="video_hsp_jumpscare_3 invisable" id="failvideo3_3">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_hsp3.mp4" type="video/mp4">
-            </video>
-        </div>
-        <div class="video_hsp_jumpscare_4 invisable" id="failvideo3_4">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_hsp4.mp4" type="video/mp4">
-            </video>
-        </div>
-        <div class="video_hsp_jumpscare_5 invisable" id="failvideo3_5">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_hsp5.mp4" type="video/mp4">
-            </video>
-        </div>
-        <div class="video_hsp_jumpscare_6 invisable" id="failvideo3_6">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_hsp6.mp4" type="video/mp4">
-            </video>
-        </div>
-      </div>
-      <div class="video_hsp_jumpscare_7 invisable" id="failvideo3_7">
-        <video width="320" height="240" controls>
-          <source src="/jumpscare_hsp7.mp4" type="video/mp4">
-          </video>
-      </div>
-      <div class="video_hsp_jumpscare_8 invisable" id="failvideo3_8">
-        <video width="320" height="240" controls>
-          <source src="/jumpscare_hsp8.mp4" type="video/mp4">
-          </video>
-      </div>
-    </div>
-    </div>
-        <div class="video_adhd_jumpscare_1 invisable" id="failvideo2_1">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_adhd1.mp4" type="video/mp4">
-            </video>
-        </div>
-        <div class="video_adhd_jumpscare_2 invisable" id="failvideo2_2">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_adhd2.mp4" type="video/mp4">
-            </video>
-        </div>
-        <div class="video_adhd_jumpscare_3 invisable" id="failvideo2_3">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_adhd3.mp4" type="video/mp4">
-            </video>
-        </div>
-        <div class="video_adhd_jumpscare_4 invisable" id="failvideo2_4">
-          <video width="320" height="240" controls>
-            <source src="/jumpscare_adhd4.mp4" type="video/mp4">
-            </video>
-        </div>
-          <div class="video_adhd_jumpscare_5 invisable" id="failvideo2_5">
-            <video width="320" height="240" controls>
-              <source src="/jumpscare_adhd5.mp4" type="video/mp4">
-              </video>
-          </div>
-          <div class="video_adhd_jumpscare_6 invisable" id="failvideo2_6">
-            <video width="320" height="240" controls>
-              <source src="/jumpscare_adhd6.mp4" type="video/mp4">
-              </video>
-          </div>
-          <div class="video_adhd_jumpscare_7 invisable" id="failvideo2_7">
-            <video width="320" height="240" controls>
-              <source src="/jumpscare_adhd7.mp4" type="video/mp4">
-              </video>
-          </div>
-          <div class="video_adhd_jumpscare_8 invisable" id="failvideo2_8">
-            <video width="320" height="240" controls>
-              <source src="/jumpscare_adhd8.mp4" type="video/mp4">
-              </video>
-          </div>
-          <div class="video_adhd_jumpscare_9 invisable" id="failvideo2_9">
-            <video width="320" height="240" controls>
-              <source src="/jumpscare_adhd9.mp4" type="video/mp4">
-              </video>
-          </div>
-      </div>
 ```
 **JS**
 ```
