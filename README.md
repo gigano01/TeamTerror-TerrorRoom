@@ -522,7 +522,7 @@ else if (decodedMessage.type === "stop") {
     }
 ```
 ### Reset 
-Zodra de outro-teller is afgelopen, wordt alles gereset naar het laatste scherm en kan het spel opnieuw worden gespeeld.
+Zodra de outro-teller is afgelopen, wordt alles gereset na het laatste scherm en kan het spel opnieuw worden gespeeld.
 
 **JS**
 ```
