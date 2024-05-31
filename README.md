@@ -5,8 +5,76 @@ Spelers worden in een donkere kamer geplaatst waarin een klas wordt gesimuleerd.
 
 Als het te veel wordt voor de spelers, kunnen ze op een noodknop drukken om de simulatie te beëindigen.
 
+## Installatie
+### Benodigdheden
+- 2 Raspberry Pi's + mini sd kaartjes
+- RPI Pixel Matrix
+- 4 kleine gekleurde knoppen (rood, geel, groen, blauw)
+- 1 grote rode knop.
+- stroboscoop
+- power switch
+- Network switch
+- Philips Hub
+- 2 philips hue lamps
+- 2 philips LED strips.
+- laptop
+- tv of groot scherm.
+- kabels (LAN, HDMI, etc)
+
+### Software
+
+Je kan deze repository in 1 keer downloaden en op de juiste plaatsen zetten met `` git clone git@github.com:gigano01/TeamTerror-TerrorRoom.git --recursive ``.
+Maar je kan ook elke repository appart installeren op het apperaat.
+
+#### Hoofd Pi
+
+Installeer de repository met `` git clone git@github.com:gigano01/creativecoding_terrorroom_pi1.git ``. En voer `` npm install `` uit.
+Hierna moet je de config aanpassen zodat het programma je lampen en hub kan vinden. Deze kan je vinden in 'config/devices.json'.
+Hoe de API key en het IP adress te vinden kan je hier bekijken: [HUE dev manual](https://developers.meethue.com/develop/get-started-2/)
+
+Stel de netwerkinstellingen in om deze pi het netwerkadress `` 192.168.100.1 `` te geven.
+
+#### Matrix Pi
+
+Installeer de repository met `` git clone git@github.com:gigano01/creativecoding_terrorroom_pi2.git --recursive ``. En voer `` npm install `` uit.
+Hierna zal je in de 'rpi-matrix-pixelpusher' folder moeten gaan en `` make `` uitvoeren. Dit installeert het achtergrondprogramma die we nodig hebben om de matrix aan te sturen.
+
+Stel de netwerkinstellingen in om deze pi het netwerkadress `` 192.168.100.3 `` te geven.
+
+#### Laptop
+
+Installeer de repository met `` git clone git@github.com:sammiadergent/creativecoding_terrorroom.git ``. En voer weer `` npm install `` uit.
+
+#### Laatste stappen
+
+Om het makkelijker te maken kan je een startup script maken voor de pi's. [Tutorial](https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/)
+
+### Opstellen
+
+Je moet een doos maken die groot genoeg is om de pi's te houden, de Matrix display goed kan vasthouden en de knoppen juist positioneerd.
+Hieronder staat een voordbeeld van hoe het originele was gemaakt. **Belangerijk:** Zorg dat de stroboscoop geen interacties vormt met de knoppen. Dit was een probleem voor de originele installatie waardoor HSP modus onbruikbaar was. Zorg dat deze goed verdeeld zitten!
+
+<img src="https://github.com/gigano01/TeamTerror-TerrorRoom/assets/28507122/d03907e1-88ff-4065-a2e9-7bb80ebdeaa0" width=50%>
+
+Je zal ook de knoppen en stroboscoop in de juiste GPIO pinnen moeten steken van de Hoofd Pi.
+| Type | GPIO pin |
+| :----------- | :-----------: |
+| noodStop  | 12 |
+| knopBlauw | 21 |
+| knopRood | 20 |
+| knopGroen | 16 |
+| knopGeel | 26 |
+| flasher | 23 |
+
+Hierna kan je alles aansluiten aan de network switch. Zorg dat je alle onderdelen tegelijkertijd aan kan zetten, dus twee/drie grote stekkerdozen met aan/uit knoppen zijn aangeraden.
+
+### Starten van de installatie
+
+Als je alle stappen hebt gevolgt zou je nu simpelweg de stekkerdozen moeten kunnen aanzetten om de installatie te starten. Het grote scherm moet je manueel aanzetten met `` npm run dev ``. Open de pagina op fullscreen, en klik op "start voor audio". Als de lichten niet langer rood zijn, is alles klaar.
+je zal de pagina opnieuw moeten laden als de lichten eerder niet gedimd waren, hierbij moet je opniew op "start voor audio" klikken.
+
 ## Front-end 
-Bij de start van het spel doorlopen alle spelers dezelfde introductieschermen. Hier ontvangen ze waarschuwingen, disclaimers en instructies voor het spelen van het spel. Na deze schermen kunnen ze kiezen tussen HSP, ADHD en ASS modus. De hoofdvideo en de achtergrondgeluiden zijn hetzelfde voor iedereen. Echter, de overprikkeling, gedachten en de uitspraken van de meester zijn specifiek voor elke modus. Wanneer spelers het spel beëindigen door op de noodknop te drukken, krijgen ze informatieve outro-schermen te zien.
+Bij de start van het spel doorlopen alle spelers dezelfde introductieschermen. Hier ontvangen ze waarschuwingen, disclaimers en instructies voor het spelen van het spel. Na deze schermen kunnen ze kiezen tussen HSP, ADHD en ASS modus. De hoofdvideo en de achtergrondgeluiden zijn hetzelfde voor iedereen. Echter, de overprikkeling, gedachten en de uitspraken van de meester zijn specifiek voor elke modus. Wanneer spelers het spel beëindigen door op de noodknop te drukken, krijgen ze informatieve outro-schermen te zien. 
 
 ![Flowchart front-end](https://github.com/gigano01/TeamTerror-TerrorRoom/assets/136450680/de43d441-f632-4ae4-aa97-3d6b99dab98c)
 ### Connectie met websocket 
