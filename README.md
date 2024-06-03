@@ -73,6 +73,98 @@ Hierna kan je alles aansluiten aan de network switch. Zorg dat je alle onderdele
 Als je alle stappen hebt gevolgt zou je nu simpelweg de stekkerdozen moeten kunnen aanzetten om de installatie te starten. Het grote scherm moet je manueel aanzetten met `` npm run dev ``. Open de pagina op fullscreen, en klik op "start voor audio". Als de lichten niet langer rood zijn, is alles klaar.
 je zal de pagina opnieuw moeten laden als de lichten eerder niet gedimd waren, hierbij moet je opniew op "start voor audio" klikken.
 
+## Back-end
+
+De backend is verantwoordelijk voor de spel-loop te controleren, en de andere elementen aan te sturen. Deze installatie bevat 2 raspberry pi's, dit is nodig omdat het RPI matrix display genoeg vraagt aan de GPU loze pi dat m'n er hierdoor niets anders meer mee kan doen. daarbij is het aansturingsprogramma van deze pi redelijk onstabiel waardoor het voor te veel problemen zou zorgen. Het is hierdoor ook dat ik van hier uit de hoofdbestuurder de "moederpi" ga noemen. 
+
+### De moederpi
+
+om de code leesbaar te houden worden bepaalde subroutines verspreid in aparte scripts, zo weet je telkens waar je de juiste code kan vinden om een behaviour toe te voegen.
+
+`` mainProgram.js `` is het hoofdprogramma, deze laad alle benodigheden, zoekt verbinding met elk onderdeel, en bevat de gameloop.  
+`` lib/server.js `` bevat alle code nodig om de verbinding te behouden en de nodige data te verspreiden onder de onderdelen.  
+`` lib/devices.js `` bevat de code nodig om de HUE lichten en LED strips te bedienen.  
+
+deze worden dan ingeladen in het hoofdprogramma
+```
+const { initializeDevices, sendHueLampData, flickerHueLamps, flickerHueLampsFailed, resetLamps } = require("./lib/devices.js")
+const { initWebsocket, sendNewInitPhase, sendColorQueue, sendColor, sendMessage } = require("./lib/server.js")
+```
+
+Het hele programma werkt op de architectuur van een statemachine. Hierdoor kan je zelf makkelijk sturen hoe je programma wordt uitgevoerd, en loopt het enkel door de code nodig voor het gedrag dat je op dit moment uitvoeren. De variabelen die wer hiervoor nodig gaan hebben maken we dan zo aan:
+```
+const STATES = {
+	setup: "setup", inGameColorShowing: "inGameColorShowing",
+	inGameReceivingInput: "inGameReceivingInput", fail: "fail", end: "end",
+	awaitingResponds: "awaitingResponds", intro: "intro", awaitingGameStart: "awaitingGameStart",
+	emergencyStop: "emergencyStop"
+}
+
+let state = STATES.setup
+```
+
+Hierna initialliseren we de knoppen. Door ze in te lezen, maar ze ook het gedrag te geven die we willen dat wordt uitgevoerd.
+```
+var Gpio = require('onoff').Gpio
+//var pushButton = new Gpio(12, 'in')
+const noodStop = new Gpio(12, 'in', 'rising', { debounceTimeout: 10 });
+const knopBlauw = new Gpio(21, 'in', 'rising', { debounceTimeout: 10 })
+//... ANDERE KNOPPEN ...
+const flasher = new Gpio(23, 'out', 'digital', { debounceTimeout: 10 })
+
+flasher.writeSync(0)
+setupButtons()
+```
+En hier is een verkleind voorbeeld van hoe de knoppen worden geïnitialiseerd:
+```
+function setupButtons() {
+	noodStop.watch(function (err, value) { //Watch for hardware interrupts on pushButton GPIO, specify callback function
+		if (err) { //if an error
+			console.error('There was an error', err); //output error message to console
+			return;
+		}
+
+		if (state === STATES.inGameColorShowing || state === STATES.inGameReceivingInput || state === STATES.awaitingResponds) {
+			console.log("noodstop")
+			state = STATES.emergencyStop
+			sendMessage(wss, "stop", { failCount: fails, rounds: roundNR })
+		}
+
+	});
+
+	knopBlauw.watch(function (err, value) { //Watch for hardware interrupts on pushButton GPIO, specify callback function
+		if (err) { //if an error
+			console.error('There was an error', err); //output error message to console
+			return;
+		}
+		console.log("blauw")
+		lastPressed = "blauw"
+	});
+
+//... ANDERE KNOPPEN ...
+
+}
+```
+
+Na de verbinding te maken gebruikmakend van `` websocket `` kunnen we beginnen met de spellogica.
+Deze is eigenlijk een grote switch statement die gebruikmakend van de `` state `` variabele springt naar de juiste blok code.
+```
+switch (state) {
+		case STATES.inGameColorShowing:
+      //... CODE FOR BEHAVIOR ...
+			break;
+
+		case STATES.awaitingResponds:
+      //... CODE FOR BEHAVIOR ...
+			break;
+
+		case STATES.inGameReceivingInput:
+      //... CODE FOR BEHAVIOR ...
+			break;
+```
+Laten we als voorbeeld `` ingameColorShowing `` nemen.  
+We beginnen met de rondenummer omhoog te doen, sinds dit de staat is waarin het spel de kleur laat zien die je moet toevoegen aan de sequentie. Gevolgd door het berekenen van de stimuliCurve met de volgende formule `` 0.15 * roundNR ** 3 * Math.max(1, fails) + fails ``
+
 ## Front-end 
 Bij de start van het spel doorlopen alle spelers dezelfde introductieschermen. Hier ontvangen ze waarschuwingen, disclaimers en instructies voor het spelen van het spel. Na deze schermen kunnen ze kiezen tussen HSP, ADHD en ASS modus. De hoofdvideo en de achtergrondgeluiden zijn hetzelfde voor iedereen. Echter, de overprikkeling, gedachten en de uitspraken van de meester zijn specifiek voor elke modus. Wanneer spelers het spel beëindigen door op de noodknop te drukken, krijgen ze informatieve outro-schermen te zien. 
 
