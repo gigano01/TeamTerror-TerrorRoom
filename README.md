@@ -44,6 +44,9 @@ Hierna zal je in de 'rpi-matrix-pixelpusher' folder moeten gaan en `` make `` ui
 
 Stel de netwerkinstellingen in om deze pi het netwerkadress `` 192.168.100.3 `` te geven.
 
+Open het bestand `` lib/pixelPusherInit.js `` en stel het juiste pad in naar "push.sh" in de projectfolder.
+Doe dan het zelfde voor `` push.sh `` naar het pixelpusher programma. **Anders zal de matrix niet starten.**
+
 #### Laptop
 
 Installeer de repository met `` git clone git@github.com:sammiadergent/creativecoding_terrorroom.git ``. En voer weer `` npm install `` uit.
@@ -192,7 +195,9 @@ switch (state) {
 
 ```
 
-Het kleuralgoritme zorgt ervoor dat je nooit twee kleuren achter elkaar kan krijgen, en vervangt soms de normale kleuren met de speciale ASS kleuren.
+Het kleuralgoritme zorgt ervoor dat je nooit twee kleuren achter elkaar kan krijgen, en vervangt soms de normale kleuren met de speciale ASS kleuren.  
+Dit gebeurt met de de formule `` Math.round((Math.random() * 3) + 1) ``. Math.random geeft je een willekeurig nummer tussen 0-1  en wij vermenigvuldigen dit met 3 zodat het een nummer tussen 0-3 word. Waar dan 1 bij wordt toegevoegd om een nummer tussen 1-4 krijgt en dat ronden we af.  
+In het geval van de ASS kleuren zorgen we ervoor dat het tussen 7-12 ligt.
 
 ```
 
@@ -200,9 +205,7 @@ function newColor(stimuliCurve, lastColor) {
 	let color = Math.round((Math.random() * 3) + 1)
 
 	if (gameMode === "ASS" && Math.round(Math.random() * 40) < stimuliCurve) {
-		//colorMath.round((Math.random() * 3) + 7)
 		color = Math.round(Math.random() * 5) + 7
-		console.log(color)
 	}
 
 	if (color === lastColor) { color = newColor(stimuliCurve, lastColor) }
@@ -215,7 +218,7 @@ Dit zijn de basisprincipes van deze code. Hiermee zou je makkelijk met de code a
 
 ### Matrix PI
 
-De matrix pi werkt op veel van dezelfde principes als de moederpi, het heeft een statemachine die het gedrag stuurt.
+De matrix pi werkt op veel van dezelfde principes als de moederpi, het heeft een statemachine die het gedrag stuurt. 
 
 ```
 const STATES = {
@@ -224,7 +227,126 @@ const STATES = {
 }
 ```
 
+Het gebruikt ook een extern programma dat de Matrix aanstuurt, deze wordt appart gemonitord om te voorkomen dat de matrix uitvalt. Dit extra programma is redelijk onstabiel en moet dus regelmatig opnieuw opgestart worden. Dit word bijgehouden door deze code.  
+**Opgelet: de matrix zal niet starten als het pad in deze code niet juist word ingesteld bij het opzetten van de installatie**
 
+```
+function pixelpusherInit() {
+	// Execute the push.sh script
+	exec('sudo bash /home/pi/project/push.sh -d', (error, stdout, stderr) => {
+		if (error) {
+			console.error(`Error executing push.sh: ${error}`);
+			pixelpusherInit()
+			return;
+		}
+		console.log(`stdout: ${stdout}`);
+		console.error(`stderr: ${stderr}`);
+	});
+	return new PixelPusher.Service()
+}
+```
+
+De kleuren en hun ID's worden ingesteld in `` lib/drawing.js `` in een array met objecten die de kleur beschrijven zoals `` {x: xPositie, y: yPositie, w: breedte, h: hoogte, c: cssKleur} ``. Die dan door het programma kunnen worden omgezet in teken instructies. Voorbeeld van rood en geel:
+
+```
+const colorLib = {
+	1: {
+		x: 0, y: 0, w: width / 2, h: height / 2, c: 'red' //rood
+	},
+	2: {
+		x: width / 2, y: 0, w: width / 2, h: height / 2, c: "yellow" //geel
+	}
+}
+```
+
+Tekst kan ook worden weergegeven, maar dit word enkel gebruikt voor de opstart procedure om aan te tonen dat je moet wachten. Dit word op een soortgelijke maar niet identieke manier opgeslagen:
+
+```
+let setupText = {
+	"pre-init": {
+		font:  "15px Comic Sans", color: "white", text: "STARTUP", align: "center", baseline:"middle"
+	},
+	...
+}
+```
+
+Als de matrix niets aan het doen is dan wacht het in de `` awaitingInstructions `` staat. Maar vanaf dat deze een bericht krijgt dan word deze geïnterpreteerd en zet de data om zodat de juiste staat geactiveerd kan worden en alles juist afspeelt. `` colorQueue `` is in de laatste versies van het spel niet meer gebuikt, maar het word wel nog onrechstreeks hebruikt door "fail". Dit komt omdat we in een latere itteratie van de installatie beslist hebben om enkel de laatste kleur te laten zien in de plaats van heel de reeks.
+
+```
+const decodedMessage = JSON.parse(message.toString()); // Decode the buffer to obtain the original string
+
+console.log('Received message from server:', decodedMessage);
+// Check for certain message types
+if (decodedMessage.type === 'setup') {
+	console.log('Received setup message from server');
+	initStage = decodedMessage.data.stage
+
+	/*start de instalatie op*/
+	if (initStage === "ready") {
+		state = STATES.awaitInstruction
+	}
+
+	// Handle setup message
+} else if (decodedMessage.type === 'colorQueue') {
+	console.log("Queue data got, processing..")
+	resetQueue()
+	queue = decodedMessage.data.queue
+	state = STATES.procesQueue
+
+} else if (decodedMessage.type === "color") {
+	if (decodedMessage.data.color !== null && decodedMessage.data.color !== undefined) {
+		console.log(`Showing color: ${decodedMessage.data.color}`)
+		resetQueue()
+		activeColor = decodedMessage.data.color
+		state = STATES.showColor
+	}
+
+} else if (decodedMessage.type === "fail") {
+	console.log("FAILED")
+	resetQueue(1)
+	for (let i = 0; i < 20; i++) {
+		queue.push(5)
+		queue.push(6)
+	} // fail color
+	console.log(queue)
+	console.log()
+	state = STATES.procesQueue
+
+}
+
+```
+
+De kleuren worden op een simpele manier weergegeven, `` showcolor `` toont enkel de kleur die gegeven werd, en `` procesQueue `` toont elke kleur zoals de andere maar gaat door heel de queue voor terug te keren naar de `` awaitInstruction `` staat.
+
+```
+case STATES.procesQueue:
+if (showTicks > 0) {
+	showTicks--
+} else {
+	showTicks = showSpeed
+	queuePointer++
+}
+
+if (queuePointer >= queue.length) {
+	sendMessage("queueDone", {}, ws)
+	state = STATES.awaitInstruction;
+	return
+}
+
+drawColor(queue[queuePointer], colorLib, ctx)
+break;
+
+case STATES.showColor:
+if (showTicks > 0) {
+	showTicks--
+} else {
+	sendMessage("colorDone", {}, ws)
+	state = STATES.awaitInstruction
+}
+drawColor(activeColor, colorLib, ctx)
+
+break;
+```
 
 ## Front-end 
 Bij de start van het spel doorlopen alle spelers dezelfde introductieschermen. Hier ontvangen ze waarschuwingen, disclaimers en instructies voor het spelen van het spel. Na deze schermen kunnen ze kiezen tussen HSP, ADHD en ASS modus. De hoofdvideo en de achtergrondgeluiden zijn hetzelfde voor iedereen. Echter, de overprikkeling, gedachten en de uitspraken van de meester zijn specifiek voor elke modus. Wanneer spelers het spel beëindigen door op de noodknop te drukken, krijgen ze informatieve outro-schermen te zien. 
