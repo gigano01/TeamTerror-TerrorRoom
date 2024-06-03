@@ -5,6 +5,9 @@ Spelers worden in een donkere kamer geplaatst waarin een klas wordt gesimuleerd.
 
 Als het te veel wordt voor de spelers, kunnen ze op een noodknop drukken om de simulatie te beëindigen.
 
+#### Trailer video
+[![Trailer video](https://img.youtube.com/vi/qSFXNF2axEk/0.jpg)](https://youtu.be/qSFXNF2axEk)
+
 ## Installatie
 ### Benodigdheden
 - 2 Raspberry Pi's + mini sd kaartjes
@@ -75,7 +78,7 @@ je zal de pagina opnieuw moeten laden als de lichten eerder niet gedimd waren, h
 
 ## Back-end
 
-De backend is verantwoordelijk voor de spel-loop te controleren, en de andere elementen aan te sturen. Deze installatie bevat 2 raspberry pi's, dit is nodig omdat het RPI matrix display genoeg vraagt aan de GPU loze pi dat m'n er hierdoor niets anders meer mee kan doen. daarbij is het aansturingsprogramma van deze pi redelijk onstabiel waardoor het voor te veel problemen zou zorgen. Het is hierdoor ook dat ik van hier uit de hoofdbestuurder de "moederpi" ga noemen. 
+De backend is verantwoordelijk voor de spel-loop te controleren, en de andere elementen aan te sturen. Deze installatie bevat 2 raspberry pi's, dit is nodig omdat het RPI matrix display genoeg vraagt aan de GPU loze pi dat m'n er hierdoor niets anders meer mee kan doen. Daarbij is het aansturingsprogramma van deze pi redelijk onstabiel waardoor het voor te veel problemen zou zorgen. Het is hierdoor ook dat ik van hier uit de hoofdbestuurder de "moederpi" ga noemen. 
 
 ### De moederpi
 
@@ -150,20 +153,78 @@ Na de verbinding te maken gebruikmakend van `` websocket `` kunnen we beginnen m
 Deze is eigenlijk een grote switch statement die gebruikmakend van de `` state `` variabele springt naar de juiste blok code.
 ```
 switch (state) {
-		case STATES.inGameColorShowing:
-      //... CODE FOR BEHAVIOR ...
-			break;
+	case STATES.inGameColorShowing:
+	//... CODE FOR BEHAVIOR ...
+	break;
 
-		case STATES.awaitingResponds:
-      //... CODE FOR BEHAVIOR ...
-			break;
+	case STATES.awaitingResponds:
+	//... CODE FOR BEHAVIOR ...
+	break;
 
-		case STATES.inGameReceivingInput:
-      //... CODE FOR BEHAVIOR ...
-			break;
+	case STATES.inGameReceivingInput:
+	//... CODE FOR BEHAVIOR ...
+	break;
 ```
 Laten we als voorbeeld `` ingameColorShowing `` nemen.  
-We beginnen met de rondenummer omhoog te doen, sinds dit de staat is waarin het spel de kleur laat zien die je moet toevoegen aan de sequentie. Gevolgd door het berekenen van de stimuliCurve met de volgende formule `` 0.15 * roundNR ** 3 * Math.max(1, fails) + fails ``
+We beginnen met de rondenummer omhoog te doen, sinds dit de staat is waarin het spel de kleur laat zien die je moet toevoegen aan de sequentie. Gevolgd door het berekenen van de stimuliCurve met de volgende formule `` 0.15 * roundNR ** 3 * Math.max(1, fails) + fails ``. Deze word dan gebruikt voor het controleren hoeveel keer een lamp moet flikkeren, en door het kleuralgoritme om te kiezen of er een ASS kleur moet verschijnen indien we in die modus zitten. We steken de nieuwe kleur in de `` colorQueue `` en steren ze door naar de Matrix pi. Vervolgens laten we de lapen flikkeren en zetten we de staat naar `` AwaitingResponds ``.  
+En dat gebeurt allemaal in de volgende code
+```
+
+switch (state) {
+	case STATES.inGameColorShowing:
+		roundNR++
+		stimuliCurve = 0.15 * roundNR ** 3 * Math.max(1, fails) + fails
+		const brightness = Math.min(40 + stimuliCurve * (4 * (gameMode === "HSP")), 100)
+
+		colorQueue.push(newColor(stimuliCurve, colorQueue[colorQueue.length - 1]))
+		sendColor(wss, colorQueue[colorQueue.length - 1])
+		if (roundNR > 1) {
+			flickerHueLamps(dvConfig, Math.round(stimuliCurve), dvConfig.lamps[1], brightness)
+			flickerHueLamps(dvConfig, Math.round(stimuliCurve * 0.5), dvConfig.lamps[0], brightness)
+			flickerHueLamps(dvConfig, Math.round(stimuliCurve), dvConfig.ledStrips[1], Math.min(100, brightness * 0.5))
+			flickerHueLamps(dvConfig, Math.round(stimuliCurve * 0.5), dvConfig.ledStrips[0], Math.min(100, brightness * 0.5))
+		}
+
+		queueStep = 0
+		state = STATES.awaitingResponds
+		break;
+}
+
+```
+
+Het kleuralgoritme zorgt ervoor dat je nooit twee kleuren achter elkaar kan krijgen, en vervangt soms de normale kleuren met de speciale ASS kleuren.
+
+```
+
+function newColor(stimuliCurve, lastColor) {
+	let color = Math.round((Math.random() * 3) + 1)
+
+	if (gameMode === "ASS" && Math.round(Math.random() * 40) < stimuliCurve) {
+		//colorMath.round((Math.random() * 3) + 7)
+		color = Math.round(Math.random() * 5) + 7
+		console.log(color)
+	}
+
+	if (color === lastColor) { color = newColor(stimuliCurve, lastColor) }
+	return color
+}
+
+```
+
+Dit zijn de basisprincipes van deze code. Hiermee zou je makkelijk met de code aan de slag moeten kunnen.
+
+### Matrix PI
+
+De matrix pi werkt op veel van dezelfde principes als de moederpi, het heeft een statemachine die het gedrag stuurt.
+
+```
+const STATES = {
+	procesQueue: "procesQueue", awaitInstruction: "awaitInstructions", showText: "showText", setup: "Setup",
+	disconnected: "disconnected", showColor: "color", fail: "fail"
+}
+```
+
+
 
 ## Front-end 
 Bij de start van het spel doorlopen alle spelers dezelfde introductieschermen. Hier ontvangen ze waarschuwingen, disclaimers en instructies voor het spelen van het spel. Na deze schermen kunnen ze kiezen tussen HSP, ADHD en ASS modus. De hoofdvideo en de achtergrondgeluiden zijn hetzelfde voor iedereen. Echter, de overprikkeling, gedachten en de uitspraken van de meester zijn specifiek voor elke modus. Wanneer spelers het spel beëindigen door op de noodknop te drukken, krijgen ze informatieve outro-schermen te zien. 
